@@ -1,0 +1,50 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    networks:
+      - mern-network
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/myAppDB
+      CORS_ORIGIN: http://localhost:${FRONTEND_PORT:-3001}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - mern-network
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: /api
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - mern-network
+    ports:
+      - "${FRONTEND_PORT:-3001}:80"
+
+networks:
+  mern-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
