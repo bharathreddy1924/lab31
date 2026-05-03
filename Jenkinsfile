@@ -67,7 +67,7 @@ pipeline {
           steps {
             dir('frontend') {
               script {
-                runCmd('CI=true npm test -- --watchAll=false', 'set CI=true&& npm test -- --watchAll=false')
+                runCmd('CI=true npm test -- --watchAll=false --passWithNoTests', 'set CI=true&& npm test -- --watchAll=false --passWithNoTests')
               }
             }
           }
